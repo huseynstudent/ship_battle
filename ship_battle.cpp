@@ -15,22 +15,34 @@ char playerboard[SIZE][SIZE];
 char opponentboard[SIZE][SIZE];
 char hiddenboard_opponent[SIZE][SIZE];
 char hiddenboard_player[SIZE][SIZE];
+char attackboard_opponent[SIZE][SIZE];
+char attackboard_player[SIZE][SIZE];
 
+int dice_roll();
+void displaywinner(int player);
 void initializeboard(char board[SIZE][SIZE]);
 void displayboard(char board[SIZE][SIZE]);
 void placeship(char board[SIZE][SIZE], int length, char hidden[SIZE][SIZE]);
 void markblocks(char board[SIZE][SIZE], int x, int y, int length, char direction);
 void markblock1(char board[SIZE][SIZE], int x, int y);
-
+void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE],int count);
 
 int main() {
+	char enter;
+	srand(time(NULL));
+	int players_ship_count = 14;
+	int opponents_ship_count = 14;
 	initializeboard(playerboard);
 	initializeboard(hiddenboard_opponent);
 	initializeboard(hiddenboard_player);
-	displayboard(playerboard);
-	cout << endl << endl;
 	initializeboard(opponentboard);
+	initializeboard(attackboard_opponent);
+	initializeboard(attackboard_player);
+	cout << "\tplayer1\n";
+	displayboard(playerboard);
+	cout << "\tplayer2\n";
 	displayboard(opponentboard);
+	cout << "\t\tplayer 1 places ships:\n";
 	int shiplength = 4;
 	placeship(playerboard, shiplength--, hiddenboard_player);
 	placeship(playerboard, shiplength--, hiddenboard_player);
@@ -38,7 +50,40 @@ int main() {
 	placeship(playerboard, shiplength--, hiddenboard_player);
 	placeship(playerboard, shiplength, hiddenboard_player);
 	placeship(playerboard, shiplength, hiddenboard_player);
+	cout << "\x1B[2J\x1B[H";
+	cout << "give keyboard to player 2 and press enter afterwards";
+	enter = _getch();//just to make sure user read the instruction,has no use
+	cout << endl;
+	displayboard(opponentboard);
+	cout << "\nplayer 2 places ships:\n";
+	shiplength = 4;
+	placeship(opponentboard, shiplength--, hiddenboard_opponent);
+	placeship(opponentboard, shiplength--, hiddenboard_opponent);
+	placeship(opponentboard, shiplength, hiddenboard_opponent);
+	placeship(opponentboard, shiplength--, hiddenboard_opponent);
+	placeship(opponentboard, shiplength, hiddenboard_opponent);
+	placeship(opponentboard, shiplength, hiddenboard_opponent);
+	cout << "\x1B[2J\x1B[H";
+	cout << "both players have 6 ships(14 pieces).first to eliminate all of other's wins\n\npress enter to roll the dice(odd-player1,even-player 2 starts)";
+	enter = _getch();
+	int dice = dice_roll();
+	cout << "dice rolled and result is:" << dice;
+	if (dice % 2 == 0) {
+		cout << "\n\teven,player 2 starts\n";
+		attackplayer(attackboard_opponent,hiddenboard_player,players_ship_count);
+	}
+	else cout << "\n\todd,player 1 starts";
+	while (players_ship_count > 0 && opponents_ship_count > 0) {
+		attackplayer(attackboard_player, hiddenboard_opponent,opponents_ship_count);
+		attackplayer(attackboard_opponent,hiddenboard_player,players_ship_count);
+	}
+	if (players_ship_count == 0)
+		displaywinner(2);
+	else displaywinner(1);
 }
+
+
+
 
 void initializeboard(char board[SIZE][SIZE]) {
 	for (int i = 0; i < SIZE; i++)
@@ -56,13 +101,63 @@ void displayboard(char board[SIZE][SIZE]) {
 	}
 	cout << endl;
 }
+void markblocks(char board[SIZE][SIZE], int x, int y, int length, char direction) {
+	for (int i = -1; i <= 1; i++) {
+		for (int j = -1; j <= length; j++) {
+			int newX = x + (direction == 'v' ? j : i);
+			int newY = y + (direction == 'h' ? j : i);
+			if (newX >= 0 && newX < SIZE && newY >= 0 && newY < SIZE) {
+				if (board[newX][newY] == '~') {
+					board[newX][newY] = block;
+				}
+			}
+		}
+	}
+}
+void markblock1(char board[SIZE][SIZE], int x, int y) {
+	for (int i = -1; i <= 1; i++) {
+		for (int j = -1; j <= 1; j++) {
+			int newX = x + i;
+			int newY = y + j;
+			if (newX >= 0 && newX < SIZE && newY >= 0 && newY < SIZE) {
+				if (board[newX][newY] == '~') {
+					board[newX][newY] = block;
+				}
+			}
+		}
+	}
+}
+int dice_roll() {
+	int dice = 1+rand() % 6;
+	return dice;
+}
+void displaywinner(int player) {
+	cout << "\x1B[2J\x1B[H";
+	if (player == 1) {
+		cout << "\033[32m"; //green
+		cout << "\t****************************\n";
+		cout << "\t*     PLAYER 1 WINS!       *\n";
+		cout << "\t****************************\n";
+	}
+	else if (player == 2) {
+		cout << "\033[31m";//red
+		cout << "\t****************************\n";
+		cout << "\t*     PLAYER 2 WINS!       *\n";
+		cout << "\t****************************\n";
+	}
+	cout << "\033[33m"; 
+	cout << "thanks for playing,this was all";
+	cout << "\033[0m";
+}
 void placeship(char board[SIZE][SIZE], int length, char hidden[SIZE][SIZE]) {
 	int x; int y; char confirm;
 	char direction;
-	cout << "Placing a ship of length " << length << ".\n\n";
-	cout << "Enter starting coordinates (row and column): ";
+	cout << "Placing a ship of length " << length << ".\n";
+	cout << "\nEnter starting coordinates (row): ";
 	cin >> x;
+	cout << "\nEnter starting coordinates (column): ";
 	cin >> y;
+
 	cout << endl;
 	if (length == 1) {
 		for (int i = 0; i < length; i++) {
@@ -158,69 +253,9 @@ void placeship(char board[SIZE][SIZE], int length, char hidden[SIZE][SIZE]) {
 		else {
 			cout << "Invalid direction. Please enter 'h' or 'v'.\n\n";
 			placeship(board, length, hidden);
-			return;
 		}
 	}
 }
-void markblocks(char board[SIZE][SIZE], int x, int y, int length, char direction) {
-	for (int i = -1; i <= 1; i++) {
-		for (int j = -1; j <= length; j++) {
-			int newX = x + (direction == 'v' ? j : i);
-			int newY = y + (direction == 'h' ? j : i);
-			if (newX >= 0 && newX < SIZE && newY >= 0 && newY < SIZE) {
-				if (board[newX][newY] == '~') {
-					board[newX][newY] = block;
-				}
-			}
-		}
-	}
-}
-void markblock1(char board[SIZE][SIZE], int x, int y) {
-	for (int i = -1; i <= 1; i++) {
-		for (int j = -1; j <= 1; j++) {
-			int newX = x + i;
-			int newY = y + j;
-			if (newX >= 0 && newX < SIZE && newY >= 0 && newY < SIZE) {
-				if (board[newX][newY] == '~') {
-					board[newX][newY] = block;
-				}
-			}
-		}
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-void attack_player() {
-	int cursor_x = 0;
-	int cursor_y = 0;
-
-	while (true) {
-		displayboard(opponentboard);
-		char key = _getch();
-		switch (key) {
-		case 72: // Up 
-			if (cursor_y > 0) cursor_y--;
-			break;
-		case 80: // Down
-			if (cursor_y < SIZE - 1) cursor_y++;
-			break;
-		case 75: // Left 
-			if (cursor_x > 0) cursor_x--;
-			break;
-		case 77: // Right
-			if (cursor_x < SIZE - 1) cursor_x++;
-		}
-	}
+void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int count) {
+	cout << 'a';
 }
