@@ -24,10 +24,10 @@ void displayboard(char board[SIZE][SIZE]);
 void placeship(char board[SIZE][SIZE], int length, char hidden[SIZE][SIZE]);
 void markblocks(char board[SIZE][SIZE], int x, int y, int length, char direction);
 void markblock1(char board[SIZE][SIZE], int x, int y);
-void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& count);
+void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& count, bool secondplayer );
+void displayboardsidebyside(char board1[SIZE][SIZE], char board2[SIZE][SIZE]);
 
 int main() {
-	char enter;
 	srand(time(NULL));
 	int players_ship_count = 14;
 	int opponents_ship_count = 14;
@@ -51,7 +51,7 @@ int main() {
 	placeship(playerboard, shiplength, hiddenboard_player);
 	cout << "\x1B[2J\x1B[H";
 	cout << "give keyboard to player 2 and press enter afterwards";
-	enter = _getch(); //just to make sure user read the instruction, has no use
+	cin.get();
 	cout << endl;
 	displayboard(opponentboard);
 	cout << "\nplayer 2 places ships:\n";
@@ -64,19 +64,19 @@ int main() {
 	placeship(opponentboard, shiplength, hiddenboard_opponent);
 	cout << "\x1B[2J\x1B[H";
 	cout << "both players have 6 ships(14 pieces).first to eliminate all of other's wins.use arrows and space to navigate\n\npress enter to roll the dice(odd-player1,even-player 2 starts)";
-	enter = _getch();
+	cin.get();
 	int dice = dice_roll();
 	cout << "dice rolled and result is:" << dice;
 	if (dice % 2 == 0) {
 		cout << "\n\teven,player 2 starts\n";
-		attackplayer(attackboard_opponent, hiddenboard_player, players_ship_count);
+		attackplayer(attackboard_opponent, hiddenboard_player, players_ship_count,true);
 	}
 	else cout << "\n\todd,player 1 starts";
 	while (players_ship_count > 0 && opponents_ship_count > 0) {
-		cout << "\n\tplayer1:\n";
-		attackplayer(attackboard_player, hiddenboard_opponent, opponents_ship_count);
-		cout << "\n\tplayer2:\n";
-		attackplayer(attackboard_opponent, hiddenboard_player, players_ship_count);
+		attackplayer(attackboard_player, hiddenboard_opponent, opponents_ship_count,false);
+
+		attackplayer(attackboard_opponent, hiddenboard_player, players_ship_count,true);
+
 	}
 	if (players_ship_count == 0)
 		displaywinner(2);
@@ -138,15 +138,15 @@ void displaywinner(int player) {
 	cout << "\x1B[2J\x1B[H";
 	if (player == 1) {
 		cout << "\033[32m"; //green
-		cout << "\t****************************\n";
+		cout << "\t**\n";
 		cout << "\t*     PLAYER 1 WINS!       *\n";
-		cout << "\t****************************\n";
+		cout << "\t**\n";
 	}
 	else if (player == 2) {
 		cout << "\033[31m"; //red
-		cout << "\t****************************\n";
+		cout << "\t**\n";
 		cout << "\t*     PLAYER 2 WINS!       *\n";
-		cout << "\t****************************\n";
+		cout << "\t**\n";
 	}
 	cout << "\033[33m";
 	cout << "thanks for playing,this was all";
@@ -156,7 +156,7 @@ void displaywinner(int player) {
 void placeship(char board[SIZE][SIZE], int length, char hidden[SIZE][SIZE]) {
 	int x; int y; char confirm;
 	char direction;
-	cout << "Placing a ship of length " << length << ".\n";
+	cout << "\nPlacing a ship of length " << length << ".\n";
 	cout << "\nEnter starting coordinates (row): ";
 	cin >> x;
 	cout << "\nEnter starting coordinates (column): ";
@@ -196,9 +196,9 @@ void placeship(char board[SIZE][SIZE], int length, char hidden[SIZE][SIZE]) {
 					hidden[x][y + i] = ship;
 				}
 				displayboard(hidden);
-				cout << "\ncurrent ship placement will be like this.\tconfirm(c is confirm and rest is not confirm)";
-				cin >> confirm;
-				if (confirm == 'c' || confirm == 'C') {
+				cout << "\ncurrent ship placement will be like this.\tpress enter to confirm(press anything else to decline)";
+				confirm = _getch();
+				if (confirm == 13) {
 					for (int i = 0; i < length; i++) {
 						board[x][y + i] = ship;
 					}
@@ -229,9 +229,9 @@ void placeship(char board[SIZE][SIZE], int length, char hidden[SIZE][SIZE]) {
 					hidden[x + i][y] = ship;
 				}
 				displayboard(hidden);
-				cout << "\ncurrent ship placement will be like this.\tconfirm(c is confirm and rest is not confirm)";
-				cin >> confirm;
-				if (confirm == 'c' || confirm == 'C') {
+				cout << "\ncurrent ship placement will be like this.\tpress enter to confirm(press anything else to decline)";
+				confirm = _getch();
+				if (confirm == 13) {
 					for (int i = 0; i < length; i++) {
 						board[x + i][y] = ship;
 					}
@@ -259,49 +259,69 @@ void placeship(char board[SIZE][SIZE], int length, char hidden[SIZE][SIZE]) {
 	}
 }
 
-void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& count) {
-	int cursorX = 0; 
-	int cursorY = 0; 
+void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& count,bool secondplayer ) {
+	int cursorX = 1;
+	int cursorY = 1;
 	char input;
+	char prevchar;
 	bool validMove = false;
-
+	cout <<"\n\t"<< (secondplayer ? "player 2" : "player 1") << endl;
 	while (!validMove) {
-		cout << "\x1B[2J\x1B[H"; 
-		displayboard(attackboard); 
-		attackboard[cursorX][cursorY] = '*'; 
+		displayboard(attackboard);
+		prevchar = attackboard[cursorX][cursorY];
+		attackboard[cursorX][cursorY] = '*';
 		cout << "\nUse arrow keys to move the cursor. Press space to attack.\n";
 
-		input = _getch(); 
+		input = _getch();
 
 		switch (input) {
 		case 72: // Up arrow
-			if (cursorX > 0) cursorX--;
+			if (cursorX > 0)
+			{
+				--cursorX;
+				attackboard[cursorX + 1][cursorY] = prevchar;
+			}
 			break;
 		case 80: // Down arrow
-			if (cursorX < SIZE - 1) cursorX++;
+			if (cursorX < SIZE - 1) {
+				++cursorX;
+				attackboard[cursorX - 1][cursorY] = prevchar;
+			}
 			break;
 		case 75: // Left arrow
-			if (cursorY > 0) cursorY--;
+			if (cursorY > 0){
+				--cursorY;
+				attackboard[cursorX][cursorY+1] = prevchar;
+			}
+
 			break;
 		case 77: // Right arrow
-			if (cursorY < SIZE - 1) cursorY++;
+			if (cursorY < SIZE - 1) {
+				++cursorY;
+				attackboard[cursorX ][cursorY-1] = prevchar;
+			}
 			break;
 		case 32: // Space
 			if (hidden[cursorX][cursorY] == ship) {
 				cout << "Hit!\n";
-				hidden[cursorX][cursorY] = sea; 
-				attackboard[cursorX][cursorY] = hit_ship; 
-				count--; 
+				hidden[cursorX][cursorY] = sea;
+				attackboard[cursorX][cursorY] = hit_ship;
+				count--;
 			}
 			else {
 				cout << "Miss!\n";
-				attackboard[cursorX][cursorY] = missed; 
+				attackboard[cursorX][cursorY] = missed;
 			}
-			validMove = true; 
+			validMove = true;
+			break;
+		case 99://enable cheats to see opponent's board
+			displayboard(hidden);
+			cin.get();
 			break;
 		default:
-			break; 
+			break;
 		}
-		attackboard[cursorX][cursorY] = ' '; 
+		attackboard[cursorX][cursorY] = ' ';
+		cout << "\x1B[2J\x1B[H";
 	}
 }
