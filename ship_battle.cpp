@@ -1,5 +1,6 @@
 #include <iostream> 
 #include <conio.h>
+#include <ctime>
 #pragma warning(disable:4996);
 
 using namespace std;
@@ -285,8 +286,6 @@ void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& co
         default:
             break;
         }
-
-        // Set the current position to '*' only if a valid move is made
         if (!validMove) {
             attackboard[cursorX][cursorY] = '*';
         }
