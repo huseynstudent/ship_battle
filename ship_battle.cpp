@@ -138,15 +138,15 @@ void displaywinner(int player) {
     cout << "\x1B[2J\x1B[H";
     if (player == 1) {
         cout << "\033[32m"; //green
-        cout << "\t**\n";
+        cout << "\t****************************\n";
         cout << "\t*     PLAYER 1 WINS!       *\n";
-        cout << "\t**\n";
+        cout << "\t****************************\n";
     }
     else if (player == 2) {
         cout << "\033[31m"; //red
-        cout << "\t**\n";
+        cout << "\t****************************\n";
         cout << "\t*     PLAYER 2 WINS!       *\n";
-        cout << "\t**\n";
+        cout << "\t****************************\n";
     }
     cout << "\033[33m";
     cout << "thanks for playing,this was all";
