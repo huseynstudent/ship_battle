@@ -27,8 +27,8 @@ void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& co
 
 int main() {
     srand(time(NULL));
-    int players_ship_count = 14;
-    int opponents_ship_count = 14;
+    int players_ship_count = 13;
+    int opponents_ship_count = 13;
     int shiplength = 4;
     int x1 = 0; int y1 = 0; int x2 = 0; int y2 = 0;
     initializeboard(playerboard);
@@ -223,75 +223,74 @@ void placeship(char board[SIZE][SIZE], int length) {
     }
 }
 
-void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& count, bool secondplayer,int cursorX ,int cursorY ){
-	char input;
-	char prevchar = attackboard[cursorX][cursorY];
-	bool validMove = false;
+void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& count, bool secondplayer, int cursorX, int cursorY) {
+    char input;
+    char prevchar = attackboard[cursorX][cursorY];
+    bool validMove = false;
+    while (!validMove) {
+        cout << "\x1B[2J\x1B[H";
+        displayboard(attackboard);
+        attackboard[cursorX][cursorY] = '*';
+        cout << "\n\t" << (secondplayer ? "player 2" : "player 1") << endl << "Remaining Ships: " << count << "\nUse arrow keys to move the cursor. Press space to attack.\n";
+        input = _getch();
 
-	while (!validMove) {
-		displayboard(attackboard); 
-		attackboard[cursorX][cursorY] = '*'; 
-		cout << "\n\t" << (secondplayer ? "player 2" : "player 1") << endl<< "Remaining Ships: " << count << "\nUse arrow keys to move the cursor. Press space to attack.\n";
-		input = _getch(); 
+        switch (input) {
+        case 72: // Up arrow
+            if (cursorX > 0) {
+                attackboard[cursorX][cursorY] = prevchar; 
+                --cursorX;
+                prevchar = attackboard[cursorX][cursorY];
+            }
+            break;
+        case 80: // Down arrow
+            if (cursorX < SIZE - 1) {
+                attackboard[cursorX][cursorY] = prevchar; 
+                ++cursorX;
+                prevchar = attackboard[cursorX][cursorY];
+            }
+            break;
+        case 75: // Left arrow
+            if (cursorY > 0) {
+                attackboard[cursorX][cursorY] = prevchar; 
+                --cursorY;
+                prevchar = attackboard[cursorX][cursorY];
+            }
+            break;
+        case 77: // Right arrow
+            if (cursorY < SIZE - 1) {
+                attackboard[cursorX][cursorY] = prevchar;
+                ++cursorY;
+                prevchar = attackboard[cursorX][cursorY];
+            }
+            break;
+        case 32: // Space to attack
+            if (hidden[cursorX][cursorY] == ship) {
+                cout << "Hit!\n";
+                hidden[cursorX][cursorY] = sea;
+                attackboard[cursorX][cursorY] = hit_ship;
+                count--;
+            }
+            else {
+                cout << "Miss!\n";
+                attackboard[cursorX][cursorY] = missed;
+            }
+            validMove = true;
+            break;
+        case 99: // Enable cheat to see opponent's board
+            displayboard(hidden);
+            cout << "\nPress Enter to return to attack phase.";
+            cin.get();
+            cout << "\x1B[2J\x1B[H";
+            break;
+        default:
+            break;
+        }
 
-		switch (input) {
-		case 72: // Up arrow
-			if (cursorX > 0) {
-				attackboard[cursorX][cursorY] = prevchar; 
-				--cursorX;
-				prevchar = attackboard[cursorX][cursorY]; 
-			}
-			break;
-		case 80: // Down arrow
-			if (cursorX < SIZE - 1) {
-				attackboard[cursorX][cursorY] = prevchar;
-				++cursorX;
-				prevchar = attackboard[cursorX][cursorY];
-			}
-			break;
-		case 75: // Left arrow
-			if (cursorY > 0) {
-				attackboard[cursorX][cursorY] = prevchar;
-				--cursorY;
-				prevchar = attackboard[cursorX][cursorY];
-			}
-			break;
-		case 77: // Right arrow
-			if (cursorY < SIZE - 1) {
-				attackboard[cursorX][cursorY] = prevchar;
-				++cursorY;
-				prevchar = attackboard[cursorX][cursorY];
-			}
-			break;
-		case 32: // Space to attack
-			if (hidden[cursorX][cursorY] == ship) {
-				cout << "Hit!\n";
-				hidden[cursorX][cursorY] = sea;
-				attackboard[cursorX][cursorY] = hit_ship;
-				count--;
-			}
-			else {
-				cout << "Miss!\n";
-				attackboard[cursorX][cursorY] = missed;
-			}
-			validMove = true;
-			break;
-		case 99: // Enable cheat to see opponent's board
-			displayboard(hidden);
-			cout << "\nPress Enter to return to attack phase.";
-			cin.get();
-			cout << "\x1B[2J\x1B[H";
-			break;
-		default:
-			break;
-		}
-		attackboard[cursorX][cursorY] = '*'; 
-        if (validMove) {
-            attackboard[cursorX][cursorY] = (hidden[cursorX][cursorY] == ship) ? hit_ship : missed; 
+        // Set the current position to '*' only if a valid move is made
+        if (!validMove) {
+            attackboard[cursorX][cursorY] = '*';
         }
-        else {
-            attackboard[cursorX][cursorY] = '*'; 
-        }
-	}
+    }
 }
+
 
