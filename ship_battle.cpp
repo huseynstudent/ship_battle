@@ -5,6 +5,7 @@
 
 using namespace std;
 
+char useless;
 const int SIZE = 10;
 const char sea = '~';
 const char ship = '@';
@@ -15,7 +16,7 @@ const char hit_ship = 'O';
 char(*playerboard)[SIZE] = new char[SIZE][SIZE];
 char(*opponentboard)[SIZE] = new char[SIZE][SIZE];
 char(*attackboard_opponent)[SIZE] = new char[SIZE][SIZE];
-char(*attackboard_player)[SIZE] = new char[SIZE][SIZE]; 
+char(*attackboard_player)[SIZE] = new char[SIZE][SIZE];
 
 int dice_roll();
 void displaywinner(int player);
@@ -61,17 +62,17 @@ int main() {
     placeship(opponentboard, shiplength);
     cout << "\x1B[2J\x1B[H";
     cout << "both players have 6 ships(14 pieces).first to eliminate all of other's wins.use arrows and space to navigate\n\npress enter to roll the dice(odd-player1,even-player 2 starts)";
-    cin.get();
+    cin >> useless;
     int dice = dice_roll();
     cout << "dice rolled and result is:" << dice;
     if (dice % 2 == 0) {
         cout << "\n\teven,player 2 starts\n";
-        attackplayer(attackboard_opponent, playerboard,players_ship_count, true, x2, y2);
+        attackplayer(attackboard_opponent, playerboard, players_ship_count, true, x2, y2);
     }
     else cout << "\n\todd,player 1 starts\n";
     while (players_ship_count > 0 && opponents_ship_count > 0) {
-        attackplayer(attackboard_player,opponentboard, opponents_ship_count, false, x1, y1);
-        attackplayer(attackboard_opponent, playerboard,players_ship_count, true);
+        attackplayer(attackboard_player, opponentboard, opponents_ship_count, false, x1, y1);
+        attackplayer(attackboard_opponent, playerboard, players_ship_count, true);
     }
     if (players_ship_count == 0)
         displaywinner(2);
@@ -137,15 +138,15 @@ void displaywinner(int player) {
     cout << "\x1B[2J\x1B[H";
     if (player == 1) {
         cout << "\033[32m"; //green
-        cout << "\t****************************\n";
+        cout << "\t**\n";
         cout << "\t*     PLAYER 1 WINS!       *\n";
-        cout << "\t****************************\n";
+        cout << "\t**\n";
     }
     else if (player == 2) {
         cout << "\033[31m"; //red
-        cout << "\t****************************\n";
+        cout << "\t**\n";
         cout << "\t*     PLAYER 2 WINS!       *\n";
-        cout << "\t****************************\n";
+        cout << "\t**\n";
     }
     cout << "\033[33m";
     cout << "thanks for playing,this was all";
@@ -238,21 +239,21 @@ void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& co
         switch (input) {
         case 72: // Up arrow
             if (cursorX > 0) {
-                attackboard[cursorX][cursorY] = prevchar; 
+                attackboard[cursorX][cursorY] = prevchar;
                 --cursorX;
                 prevchar = attackboard[cursorX][cursorY];
             }
             break;
         case 80: // Down arrow
             if (cursorX < SIZE - 1) {
-                attackboard[cursorX][cursorY] = prevchar; 
+                attackboard[cursorX][cursorY] = prevchar;
                 ++cursorX;
                 prevchar = attackboard[cursorX][cursorY];
             }
             break;
         case 75: // Left arrow
             if (cursorY > 0) {
-                attackboard[cursorX][cursorY] = prevchar; 
+                attackboard[cursorX][cursorY] = prevchar;
                 --cursorY;
                 prevchar = attackboard[cursorX][cursorY];
             }
@@ -265,6 +266,7 @@ void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& co
             }
             break;
         case 32: // Space to attack
+
             if (hidden[cursorX][cursorY] == ship) {
                 cout << "Hit!\n";
                 hidden[cursorX][cursorY] = sea;
@@ -280,7 +282,7 @@ void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& co
         case 99: // Enable cheat to see opponent's board
             displayboard(hidden);
             cout << "\nPress Enter to return to attack phase.";
-            cin.get();
+            cin >> useless;
             cout << "\x1B[2J\x1B[H";
             break;
         default:
@@ -291,5 +293,3 @@ void attackplayer(char attackboard[SIZE][SIZE], char hidden[SIZE][SIZE], int& co
         }
     }
 }
-
-
